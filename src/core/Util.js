@@ -197,7 +197,7 @@ export var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAA
 // inspired by http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 
 function getPrefixed(name) {
-	return window['webkit' + name] || window['moz' + name] || window['ms' + name];
+	if (window) return window['webkit' + name] || window['moz' + name] || window['ms' + name];
 }
 
 var lastTime = 0;
@@ -211,9 +211,9 @@ function timeoutDefer(fn) {
 	return window.setTimeout(fn, timeToCall);
 }
 
-export var requestFn = window.requestAnimationFrame || getPrefixed('RequestAnimationFrame') || timeoutDefer;
-export var cancelFn = window.cancelAnimationFrame || getPrefixed('CancelAnimationFrame') ||
-		getPrefixed('CancelRequestAnimationFrame') || function (id) { window.clearTimeout(id); };
+export var requestFn = window ? window.requestAnimationFrame : getPrefixed('RequestAnimationFrame') || timeoutDefer;
+export var cancelFn =  window ? window.cancelAnimationFrame : getPrefixed('CancelAnimationFrame') ||
+		getPrefixed('CancelRequestAnimationFrame') || function (id) { if (window) window.clearTimeout(id); };
 
 // @function requestAnimFrame(fn: Function, context?: Object, immediate?: Boolean): Number
 // Schedules `fn` to be executed when the browser repaints. `fn` is bound to
@@ -225,14 +225,14 @@ export function requestAnimFrame(fn, context, immediate) {
 	if (immediate && requestFn === timeoutDefer) {
 		fn.call(context);
 	} else {
-		return requestFn.call(window, bind(fn, context));
+		if (window) return requestFn.call(window, bind(fn, context));
 	}
 }
 
 // @function cancelAnimFrame(id: Number): undefined
 // Cancels a previous `requestAnimFrame`. See also [window.cancelAnimationFrame](https://developer.mozilla.org/docs/Web/API/window/cancelAnimationFrame).
 export function cancelAnimFrame(id) {
-	if (id) {
+	if (id && window) {
 		cancelFn.call(window, id);
 	}
 }
